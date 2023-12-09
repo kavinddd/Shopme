@@ -50,8 +50,8 @@ public class CategoryRepositoryTest {
     @Test
     public void testCreateMoreCategoryWithSameParent() {
         Category parent = repo.findById(1).get();
-        Category labtop = new Category("Labtop", parent);
-        repo.save(labtop);
+        Category laptop = new Category("Laptop", parent);
+        repo.save(laptop);
         assert parent.getChildren().size() > 1;
     }
 
