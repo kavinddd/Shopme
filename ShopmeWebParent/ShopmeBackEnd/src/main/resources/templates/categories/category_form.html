@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" >
+<head th:replace="~{fragments::page_head(${pageTitle})}">
+</head>
+<body>
+<div class="container-fluid">
+  <div th:replace="~{navigator::menu}"/>
+  <div>
+    <h2> Manage Categories | Add Category  </h2>
+  </div>
+<form th:action="@{/categories/save}" method="post" th:object="${category}" style="max-width: 700px; margin: 0 auto"
+      enctype="multipart/form-data" onsubmit="return checkUniqueness(this)">
+  <input type="hidden" th:field="*{id}" />
+
+  <div class="border border-secondary rounded p-3">
+    <div class="form-group row m-3">
+      <label class="col-sm-4 col-form-label">Name</label>
+      <div class="col-sm-8">
+        <input type="text" class="form-control" id="name" th:field="*{name}" required/>
+      </div>
+    </div>
+    <div class="row m-3">
+      <label class="col-sm-4">Alias</label>
+      <div class="col-sm-8">
+        <input type="text" class="form-control" id="alias" th:field="*{alias}" required/>
+      </div>
+    </div>
+    <div class="row m-3">
+      <label class="col-sm-4">Parent Category</label>
+      <div class="col-sm-8">
+      <select class="form-select form-control" th:field="*{parent}">
+        <option selected value="">No Parent</option>
+        <option th:each="category : ${categories}" th:value="${category}">[[${category}]]</option>
+      </select>
+      </div>
+    </div>
+
+    <div class="row m-3">
+      <label class="col-sm-4">Image</label>
+      <div class="col-sm-8">
+        <input type="file" id="fileImage" accept="image/png image/jpg"/>
+        <img class="mt-2" id="thumbnail" alt="photo-preview" th:src="@{/images/image-thumbnail.png}"/>
+      </div>
+
+
+    </div>
+
+    <div class="row m-3">
+      <label class="col-sm-4"> Enabled</label>
+      <div class="col-sm-8">
+        <input type="checkbox" class="form=control" th:field="*{enabled}" size="10px"/>
+      </div>
+    </div>
+
+    <div class="text-center">
+      <input type="submit" class="btn btn-primary">
+      <input type="button" value="Cancel" class="btn btn-secondary" id="buttonCancel">
+    </div>
+
+  </div>
+
+
+  <div class="modal fade text-center" id="modalDialog">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title" id="modalTitle">Warning</h4>
+          <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
+        </div>
+
+        <div class="modal-body">
+          <span id="modalBody"></span>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+</form>
+</div>
+
+<div th:replace="~{fragments::footer}"></div>
+<script type="text/javascript">
+  const moduleURL = "[[@{/categories}]]";
+
+  function checkUniqueness(form) {
+      console.log("checkUniqueness is being called");
+      url = "[[@{/categories/new/checkUnique}]]"
+      params = {
+              "_csrf" : $("input[name='_csrf']").val(),
+              "name" : $("#name").val(),
+              "alias" : $("#alias").val()
+              };
+
+      $.post(url, params,
+        function(response) {
+          if (response == "OK") {
+            return form.submit();
+          }
+          else if (response == "Name Duplicated" || response == "Alias Duplicated") {
+            showModalDialog("Warning", response);
+          }
+          else {
+          showModalDialog("Error", "There was an unknown error from server");
+          }
+        }
+      ).fail(function() { showModalDialog("Error", "Could not connect to the server") } );
+
+      return false;
+  }
+</script>
+<script th:src="@{/js/common_form.js}"></script>
+</body>
+</html>
