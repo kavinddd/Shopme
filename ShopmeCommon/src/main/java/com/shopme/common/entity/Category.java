@@ -109,6 +109,6 @@ public class Category {
                 ", alias='" + alias + '\'' +
                 ", image='" + image + '\'' +
                 ", enabled=" + enabled +
-                ", parent=" + parent;
+                ", parent=" + parent + "}";
     }
 }

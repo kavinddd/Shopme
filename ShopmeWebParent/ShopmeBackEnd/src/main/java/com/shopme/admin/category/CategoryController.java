@@ -16,6 +16,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 public class CategoryController {
@@ -36,10 +37,9 @@ public class CategoryController {
     @GetMapping("/categories/new")
     public String addCategory(Model model) {
         Category newCategory = new Category();
-//        List<String> categories = categoryService.listHierarchyName();
+        Map<Integer,String> categoryIdWithHierarchyLevel = categoryService.countAllHierarchyLevel();
         model.addAttribute("category", newCategory);
-//        model.addAttribute("categories", categories);
-
+        model.addAttribute("categoriesWithHierarchyLevel", categoryIdWithHierarchyLevel);
         return "categories/category_form";
     }
 

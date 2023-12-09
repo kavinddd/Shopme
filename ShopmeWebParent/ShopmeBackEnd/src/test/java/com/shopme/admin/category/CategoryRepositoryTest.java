@@ -55,18 +55,4 @@ public class CategoryRepositoryTest {
         assert parent.getChildren().size() > 1;
     }
 
-    @Test
-    public void testPrintHierachicalCategories(){
-        Iterable<Category> categories = repo.findAll();
-        String whitespace = "---";
-
-        for (Category category : categories) {
-            System.out.println(category.getName());
-            if (category.getChildren() != null) {
-                category.getChildren().forEach(
-                        subCategory -> System.out.println(whitespace + subCategory.getName())
-                );
-            }
-        }
-    }
 }
