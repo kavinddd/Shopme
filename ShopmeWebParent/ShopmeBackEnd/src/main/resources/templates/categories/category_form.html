@@ -30,7 +30,7 @@
       <div class="col-sm-8">
       <select class="form-select form-control" th:field="*{parent}">
         <option selected value="">No Parent</option>
-        <option th:each="category : ${categories}" th:value="${category}">[[${category}]]</option>
+        <option th:each="cat : ${categoriesWithHierarchyLevel.entrySet()}" th:value="${cat.getKey()}">[[${cat.getValue()}]]</option>
       </select>
       </div>
     </div>
@@ -38,8 +38,9 @@
     <div class="row m-3">
       <label class="col-sm-4">Image</label>
       <div class="col-sm-8">
-        <input type="file" id="fileImage" accept="image/png image/jpg"/>
-        <img class="mt-2" id="thumbnail" alt="photo-preview" th:src="@{/images/image-thumbnail.png}"/>
+<!--        <input type="hidden" th:field="*{image}">-->
+        <input type="file" id="fileImage" name="image" accept="image/png image/jpg"/>
+        <img class="mt-2 img-fluid" id="thumbnail" alt="photo-preview" th:src="@{/images/image-thumbnail.png}"/>
       </div>
 
 

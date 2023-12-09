@@ -31,8 +31,8 @@ public class CategoryRestController {
     }
 
     @GetMapping("/categories/test")
-    public Map<Category, String> test() {
-        Map<Category, String> levels = categoryService.countAllHierarchyLevel();
+    public Map<Integer, String> test() {
+        Map<Integer, String> levels = categoryService.countAllHierarchyLevel();
         return levels;
     }
 }

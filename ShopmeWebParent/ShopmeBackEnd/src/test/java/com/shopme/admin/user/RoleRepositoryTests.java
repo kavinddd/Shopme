@@ -10,16 +10,10 @@ import org.springframework.test.annotation.Rollback;
 import java.util.List;
 
 @DataJpaTest
-@AutoConfigureTestDatabase(replace= AutoConfigureTestDatabase.Replace.NONE)
-@Rollback(false)
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 public class RoleRepositoryTests {
     @Autowired
     private RoleRepository repo;
-
-
-    @Autowired
-    public RoleRepositoryTests(RoleRepository repo) {
-    }
 
     @Test
     public void testCreateFirstRole() {
@@ -40,6 +34,12 @@ public class RoleRepositoryTests {
                 "manage questions and reviews ");
 
         repo.saveAll(List.of(roleSalesperson, roleEditor, roleShipper, roleAssistant));
+        int nRoles = 0;
+
+        for (Role role: repo.findAll()) {
+            nRoles++;
+        }
+        assert nRoles >= 4;
 
     }
 }

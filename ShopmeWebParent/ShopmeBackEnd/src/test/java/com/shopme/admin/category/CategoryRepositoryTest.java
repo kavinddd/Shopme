@@ -50,23 +50,9 @@ public class CategoryRepositoryTest {
     @Test
     public void testCreateMoreCategoryWithSameParent() {
         Category parent = repo.findById(1).get();
-        Category labtop = new Category("Labtop", parent);
-        repo.save(labtop);
+        Category laptop = new Category("Laptop", parent);
+        repo.save(laptop);
         assert parent.getChildren().size() > 1;
     }
 
-    @Test
-    public void testPrintHierachicalCategories(){
-        Iterable<Category> categories = repo.findAll();
-        String whitespace = "---";
-
-        for (Category category : categories) {
-            System.out.println(category.getName());
-            if (category.getChildren() != null) {
-                category.getChildren().forEach(
-                        subCategory -> System.out.println(whitespace + subCategory.getName())
-                );
-            }
-        }
-    }
 }

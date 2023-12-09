@@ -40,8 +40,7 @@ public class UserRepositoryTests {
         User userPrommin = new User("wanlnw879@hotmail.com", "wanlnw879", "Promminna", "Kavindechatorn");
         Role roleEditor = new Role(3);
         Role roleAssistant = new Role(5);
-        System.out.println(roleEditor);
-        System.out.println(roleAssistant);
+
         userPrommin.addRole(roleEditor);
         userPrommin.addRole(roleAssistant);
 

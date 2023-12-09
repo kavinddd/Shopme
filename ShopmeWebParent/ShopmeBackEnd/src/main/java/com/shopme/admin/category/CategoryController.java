@@ -16,6 +16,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 public class CategoryController {
@@ -36,25 +37,27 @@ public class CategoryController {
     @GetMapping("/categories/new")
     public String addCategory(Model model) {
         Category newCategory = new Category();
-//        List<String> categories = categoryService.listHierarchyName();
+        Map<Integer,String> categoryIdWithHierarchyLevel = categoryService.countAllHierarchyLevel();
         model.addAttribute("category", newCategory);
-//        model.addAttribute("categories", categories);
-
+        model.addAttribute("categoriesWithHierarchyLevel", categoryIdWithHierarchyLevel);
         return "categories/category_form";
     }
 
     @PostMapping("/categories/save")
     public String saveCategory(Category category, RedirectAttributes redirectAttributes,
-                               @RequestParam("fileImage") MultipartFile multipartFile) throws IOException {
+                               @RequestParam("image")MultipartFile multipartFile) throws IOException {
 
-        FileUploadUtil fileUploadUtil = new FileUploadUtil();
         String imageFileName = multipartFile.getOriginalFilename();
         String cleanedImageFileName = StringUtils.cleanPath(imageFileName);
         String uploadDir = "../category-images/" + category.getId();
 
-        fileUploadUtil.saveFile(uploadDir, cleanedImageFileName, multipartFile);
-
+        System.out.println(cleanedImageFileName);
+        System.out.println(uploadDir);
         System.out.println(category);
+
+        FileUploadUtil.cleanDir(uploadDir);
+        FileUploadUtil.saveFile(uploadDir, cleanedImageFileName, multipartFile);
+
         categoryService.save(category);
         redirectAttributes.addFlashAttribute("message", "New category has been created");
         return "redirect:/categories";
@@ -70,10 +73,11 @@ public class CategoryController {
     @GetMapping("/categories/edit/{id}")
     public String editCategory(@PathVariable(name="id") Integer id, Model model) {
         Category category = categoryService.findById(id);
+        Map<Integer, String> categoryIdWithHierarchyLevel = categoryService.countAllHierarchyLevel();
         model.addAttribute("category", category);
+        model.addAttribute("categoriesWithHierarchyLevel", categoryIdWithHierarchyLevel);
 
 
-//        model.addAttribute("categories", categories);
         return "categories/category_form";
     }
 }

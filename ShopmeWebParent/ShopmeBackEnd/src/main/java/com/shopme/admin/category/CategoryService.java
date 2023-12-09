@@ -19,5 +19,5 @@ public interface CategoryService {
 
     Category findById(Integer id);
 
-    Map<Category, String> countAllHierarchyLevel();
+    Map<Integer, String> countAllHierarchyLevel();
 }
