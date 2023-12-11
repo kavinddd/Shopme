@@ -1,0 +1,43 @@
+name: Maven Build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  builds:
+    runs-on: ubuntu-latest
+    env:
+      MYSQL_DB_HOST: ${{secrets.MYSQL_DB_HOST}}
+      MYSQL_DB_PORT: ${{secrets.MYSQL_DB_PORT}}
+      MYSQL_DB_NAME: ${{secrets.MYSQL_DB_NAME}}
+      MYSQL_DB_PASSWORD: ${{secrets.MYSQL_DB_PASSWORD}}
+    
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - run: pwd
+
+    - name: Set Up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'oracle'
+        java-version: '17'
+        java-package: 'jdk'
+
+    - name: Maven build
+      run: mvn -pl :ShopmeBackEnd -am clean install -DskipTests
+
+    - run: echo "Successfully built"
+
+    - name: Build image and push
+      uses: mr-smithers-excellent/docker-build-push@v6.2
+      with:
+        image: "kavinddd/shopmebackend"
+        registry: "docker.io"
+        username: ${{secrets.DOCKER_USERNAME}}
+        password: ${{secrets.DOCKER_PASSWORD}}
+
