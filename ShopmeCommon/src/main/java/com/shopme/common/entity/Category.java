@@ -37,7 +37,6 @@ public class Category {
         this.name = name;
         this.parent = parent;
         this.alias = name;
-        this.image = "default.png";
     }
 
     public int getId() {
@@ -97,8 +96,8 @@ public class Category {
 
     @Transient
     public String getImagePath() {
-        if (image == null) return null;
-        return "{%s}/{%d}/{%s}".formatted("/category-images", id, image);
+        if (image == null) return "/images/image-thumbnail.png";
+        return "%s/%d/%s".formatted("/category-images", id, image);
     }
 
     @Override
@@ -111,4 +110,6 @@ public class Category {
                 ", enabled=" + enabled +
                 ", parent=" + parent + "}";
     }
+
+    `
 }

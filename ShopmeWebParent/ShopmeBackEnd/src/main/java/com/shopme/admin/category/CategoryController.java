@@ -45,20 +45,26 @@ public class CategoryController {
 
     @PostMapping("/categories/save")
     public String saveCategory(Category category, RedirectAttributes redirectAttributes,
-                               @RequestParam("image")MultipartFile multipartFile) throws IOException {
+                               @RequestParam("fileImage")MultipartFile multipartFile) throws IOException {
+        boolean isImageUploaded = !multipartFile.isEmpty();
+        boolean isCategoryHadPhoto = !category.getImage().isEmpty();
 
         String imageFileName = multipartFile.getOriginalFilename();
         String cleanedImageFileName = StringUtils.cleanPath(imageFileName);
-        String uploadDir = "../category-images/" + category.getId();
 
-        System.out.println(cleanedImageFileName);
-        System.out.println(uploadDir);
-        System.out.println(category);
+        if (isImageUploaded) {
+            category.setImage(cleanedImageFileName);
+        }
 
-        FileUploadUtil.cleanDir(uploadDir);
-        FileUploadUtil.saveFile(uploadDir, cleanedImageFileName, multipartFile);
+        Category savedCategory = categoryService.save(category);
 
-        categoryService.save(category);
+        if (isImageUploaded) {
+            String uploadDir = "category-images/" + savedCategory.getId();
+            FileUploadUtil.cleanDir(uploadDir);
+            FileUploadUtil.saveFile(uploadDir, cleanedImageFileName, multipartFile);
+        }
+
+
         redirectAttributes.addFlashAttribute("message", "New category has been created");
         return "redirect:/categories";
     }
