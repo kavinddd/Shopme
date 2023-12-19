@@ -29,7 +29,7 @@ public class CategoryController {
 
     @GetMapping("/categories")
     public String listAllCategories(Model model){
-        List<Category> categories = categoryService.listAll();
+        List<Category> categories = categoryService.listAllInHierachical();
         model.addAttribute("categories", categories);
         return "categories/categories";
     }
@@ -40,44 +40,52 @@ public class CategoryController {
         Map<Integer,String> categoryIdWithHierarchyLevel = categoryService.countAllHierarchyLevel();
         model.addAttribute("category", newCategory);
         model.addAttribute("categoriesWithHierarchyLevel", categoryIdWithHierarchyLevel);
+        model.addAttribute("pageTitle", "Create new category");
         return "categories/category_form";
     }
 
     @PostMapping("/categories/save")
     public String saveCategory(Category category, RedirectAttributes redirectAttributes,
-                               @RequestParam("image")MultipartFile multipartFile) throws IOException {
+                               @RequestParam("fileImage")MultipartFile multipartFile) throws IOException {
+        boolean isImageUploaded = !multipartFile.isEmpty();
+        boolean isCategoryHadPhoto = !category.getImage().isEmpty();
 
         String imageFileName = multipartFile.getOriginalFilename();
         String cleanedImageFileName = StringUtils.cleanPath(imageFileName);
-        String uploadDir = "../category-images/" + category.getId();
 
-        System.out.println(cleanedImageFileName);
-        System.out.println(uploadDir);
-        System.out.println(category);
+        if (isImageUploaded) {
+            category.setImage(cleanedImageFileName);
+        } else if (!isCategoryHadPhoto) {
+            category.setImage(null);
+        }
 
-        FileUploadUtil.cleanDir(uploadDir);
-        FileUploadUtil.saveFile(uploadDir, cleanedImageFileName, multipartFile);
+        Category savedCategory = categoryService.save(category);
 
-        categoryService.save(category);
-        redirectAttributes.addFlashAttribute("message", "New category has been created");
+        if (isImageUploaded) {
+            String uploadDir = "category-images/" + savedCategory.getId();
+            FileUploadUtil.cleanDir(uploadDir);
+            FileUploadUtil.saveFile(uploadDir, cleanedImageFileName, multipartFile);
+        }
+
+
+        redirectAttributes.addFlashAttribute("message", "The category has been saved successfully!");
         return "redirect:/categories";
     }
 
     @GetMapping("/categories/delete/{id}")
-    public String deleteCategory(@PathVariable(name="id") Integer id, RedirectAttributes redirectAttributes){
+    public String deleteCategory(@PathVariable(name="id") Integer id, RedirectAttributes redirectAttributes) throws CategoryNotFoundException {
         categoryService.deleteById(id);
         redirectAttributes.addFlashAttribute("message", "Category ID %d has been deleted.".formatted(id));
         return "redirect:/categories";
     }
 
     @GetMapping("/categories/edit/{id}")
-    public String editCategory(@PathVariable(name="id") Integer id, Model model) {
+    public String editCategory(@PathVariable(name="id") Integer id, Model model) throws CategoryNotFoundException {
         Category category = categoryService.findById(id);
         Map<Integer, String> categoryIdWithHierarchyLevel = categoryService.countAllHierarchyLevel();
         model.addAttribute("category", category);
         model.addAttribute("categoriesWithHierarchyLevel", categoryIdWithHierarchyLevel);
-
-
+        model.addAttribute("pageTitle", "Edit category id %d".formatted(id));
         return "categories/category_form";
     }
 }

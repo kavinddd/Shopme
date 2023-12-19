@@ -16,10 +16,10 @@ public class Category {
     private String name;
     @Column(length = 64, nullable = false, unique = true)
     private String alias;
-    @Column(length = 128, nullable = false)
+    @Column(length = 128)
     private String image;
     private boolean enabled;
-    @ManyToOne
+    @ManyToOne(cascade = {CascadeType.DETACH})
     @JoinColumn(name="parent_id", unique = false)
     private Category parent;
     @OneToMany(mappedBy = "parent")
@@ -34,10 +34,13 @@ public class Category {
     }
 
     public Category(String name, Category parent) {
+        this(name, parent, name.toLowerCase().replace(" ", "_"));
+    }
+
+    public Category(String name, Category parent, String alias) {
+        this.id = id;
         this.name = name;
-        this.parent = parent;
-        this.alias = name;
-        this.image = "default.png";
+        this.alias = alias;
     }
 
     public int getId() {
@@ -97,8 +100,12 @@ public class Category {
 
     @Transient
     public String getImagePath() {
-        if (image == null) return null;
-        return "{%s}/{%d}/{%s}".formatted("/category-images", id, image);
+        if (image == null) return "/images/image-thumbnail.png";
+        return "%s/%d/%s".formatted("/category-images", id, image);
+    }
+    @Transient
+    public boolean isRoot() {
+        return this.getParent() == null;
     }
 
     @Override
@@ -110,5 +117,11 @@ public class Category {
                 ", image='" + image + '\'' +
                 ", enabled=" + enabled +
                 ", parent=" + parent + "}";
+    }
+
+
+    @Transient
+    public boolean isChildren() {
+        return this.getParent() != null;
     }
 }

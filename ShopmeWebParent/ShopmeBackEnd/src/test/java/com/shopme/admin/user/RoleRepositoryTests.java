@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.annotation.Rollback;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
 
@@ -19,8 +20,8 @@ public class RoleRepositoryTests {
     public void testCreateFirstRole() {
         Role roleAdmin = new Role("Admin", "Manage everything");
         Role savedRole = repo.save(roleAdmin);
-        System.out.println(savedRole);
-        assert savedRole.getId() > 0;
+        assertTrue(savedRole.getId() > 0);
+        assertEquals(savedRole.getName(), "Admin");
     }
     @Test
     public void testCreateRestRoles() {
@@ -39,7 +40,7 @@ public class RoleRepositoryTests {
         for (Role role: repo.findAll()) {
             nRoles++;
         }
-        assert nRoles >= 4;
+        assertTrue(nRoles >= 4);
 
     }
 }

@@ -2,6 +2,7 @@ package com.shopme.admin.user;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class PasswordEncoderTest {
     @Test
@@ -10,7 +11,7 @@ public class PasswordEncoderTest {
         String rawPassword = "nam2020";
         String encodedPassword = passwordEncoder.encode(rawPassword);
         System.out.println(encodedPassword);
-        assert passwordEncoder.matches(rawPassword, encodedPassword);
+        assertTrue(passwordEncoder.matches(rawPassword, encodedPassword));
     }
 
 }

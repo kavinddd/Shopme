@@ -24,9 +24,10 @@ public class CategoryRestController {
         System.out.println("checkUnique is being called" );
         String name = payload.get("name");
         String alias = payload.get("alias");
+        Integer id = Integer.valueOf(payload.get("categoryId"));
         System.out.println(name + " " + alias);
-        if (!categoryService.isNameUnique(name)) return "Name Duplicated";
-        if (!categoryService.isAliasUnique(alias)) return "Alias Duplicated";
+        if (!categoryService.isNameUnique(name, id)) return "Name Duplicated";
+        if (!categoryService.isAliasUnique(alias, id)) return "Alias Duplicated";
         return "OK";
     }
 
