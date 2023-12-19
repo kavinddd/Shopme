@@ -6,7 +6,7 @@
 <div class="container-fluid">
   <div th:replace="~{navigator::menu}"/>
   <div>
-    <h2> Manage Categories | Add Category  </h2>
+    <h2> Manage Categories | [[${pageTitle}]]  </h2>
   </div>
 <form th:action="@{/categories/save}" method="post" th:object="${category}" style="max-width: 700px; margin: 0 auto"
       enctype="multipart/form-data" onsubmit="return checkUniqueness(this)">
@@ -94,7 +94,8 @@
       params = {
               "_csrf" : $("input[name='_csrf']").val(),
               "name" : $("#name").val(),
-              "alias" : $("#alias").val()
+              "alias" : $("#alias").val(),
+              "categoryId" : $("#id").val()
               };
 
       $.post(url, params,

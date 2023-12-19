@@ -29,7 +29,7 @@ public class CategoryController {
 
     @GetMapping("/categories")
     public String listAllCategories(Model model){
-        List<Category> categories = categoryService.listAll();
+        List<Category> categories = categoryService.listAllInHierachical();
         model.addAttribute("categories", categories);
         return "categories/categories";
     }
@@ -40,6 +40,7 @@ public class CategoryController {
         Map<Integer,String> categoryIdWithHierarchyLevel = categoryService.countAllHierarchyLevel();
         model.addAttribute("category", newCategory);
         model.addAttribute("categoriesWithHierarchyLevel", categoryIdWithHierarchyLevel);
+        model.addAttribute("pageTitle", "Create new category");
         return "categories/category_form";
     }
 
@@ -54,6 +55,8 @@ public class CategoryController {
 
         if (isImageUploaded) {
             category.setImage(cleanedImageFileName);
+        } else if (!isCategoryHadPhoto) {
+            category.setImage(null);
         }
 
         Category savedCategory = categoryService.save(category);
@@ -65,25 +68,24 @@ public class CategoryController {
         }
 
 
-        redirectAttributes.addFlashAttribute("message", "New category has been created");
+        redirectAttributes.addFlashAttribute("message", "The category has been saved successfully!");
         return "redirect:/categories";
     }
 
     @GetMapping("/categories/delete/{id}")
-    public String deleteCategory(@PathVariable(name="id") Integer id, RedirectAttributes redirectAttributes){
+    public String deleteCategory(@PathVariable(name="id") Integer id, RedirectAttributes redirectAttributes) throws CategoryNotFoundException {
         categoryService.deleteById(id);
         redirectAttributes.addFlashAttribute("message", "Category ID %d has been deleted.".formatted(id));
         return "redirect:/categories";
     }
 
     @GetMapping("/categories/edit/{id}")
-    public String editCategory(@PathVariable(name="id") Integer id, Model model) {
+    public String editCategory(@PathVariable(name="id") Integer id, Model model) throws CategoryNotFoundException {
         Category category = categoryService.findById(id);
         Map<Integer, String> categoryIdWithHierarchyLevel = categoryService.countAllHierarchyLevel();
         model.addAttribute("category", category);
         model.addAttribute("categoriesWithHierarchyLevel", categoryIdWithHierarchyLevel);
-
-
+        model.addAttribute("pageTitle", "Edit category id %d".formatted(id));
         return "categories/category_form";
     }
 }

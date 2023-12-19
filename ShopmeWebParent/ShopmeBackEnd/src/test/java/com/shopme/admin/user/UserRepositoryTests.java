@@ -12,12 +12,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.util.Assert;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace= AutoConfigureTestDatabase.Replace.NONE)
-@Rollback(false)
 public class UserRepositoryTests {
     @Autowired
     private UserRepository repo;
@@ -31,7 +31,8 @@ public class UserRepositoryTests {
         userPrommest.addRole(roleAdmin);
 
         User savedUser = repo.save(userPrommest);
-        assert savedUser.getId() > 0;
+        assertTrue(savedUser.getId() > 0);
+
     }
 
     @Test
@@ -45,7 +46,7 @@ public class UserRepositoryTests {
         userPrommin.addRole(roleAssistant);
 
         User savedUser = repo.save(userPrommin);
-        assert savedUser.getId() > 0;
+        assertTrue(savedUser.getRoles().size() > 10);
     }
 
     @Test
