@@ -11,6 +11,7 @@ public interface CategoryService {
 
     Category save(Category category);
 
+    boolean isUnique(String name, String alias, Integer id);
     boolean isNameUnique(String name, Integer id);
 
     boolean isAliasUnique(String alias, Integer id);
@@ -21,5 +22,9 @@ public interface CategoryService {
 
     Map<Integer, String> countAllHierarchyLevel();
 
-    List<Category> listAllInHierachical();
+    List<Category> listAllWithHierarchicalName();
+
+    List<Category> listCategoriesByPage(CategoryPageInfo categoryPageInfo,int pageNum, String sortDir, String keyword);
+
+    void updateCategoryStatusById(Integer id, boolean status) throws CategoryNotFoundException;
 }

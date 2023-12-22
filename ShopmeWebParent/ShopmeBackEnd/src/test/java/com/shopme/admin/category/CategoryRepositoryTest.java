@@ -1,16 +1,13 @@
 package com.shopme.admin.category;
 
 import com.shopme.common.entity.Category;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.test.annotation.Rollback;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Optional;
-import java.util.Set;
 
 @DataJpaTest(showSql = false)
 @AutoConfigureTestDatabase()
@@ -55,19 +52,19 @@ public class CategoryRepositoryTest {
 
     @Test
     public void testFindByName() {
-        Category category = repo.findCategoryByName("Laptop");
+        Optional<Category> category = repo.findCategoryByName("Laptop");
 
-        assertNotNull(category);
-        assertEquals("Laptop", category.getName());
+        assertTrue(category.isPresent());
+        assertEquals("Laptop", category.get().getName());
 
     }
 
     @Test
     public void testFindByAlias() {
         String alias = "desktops";
-        Category category = repo.findCategoryByAlias(alias);
-        assertNotNull(category);
-        assertEquals(alias, category.getAlias());
+        Optional<Category> category = repo.findCategoryByAlias(alias);
+        assertTrue(category.isPresent());
+        assertEquals(alias, category.get().getAlias());
     }
 
 

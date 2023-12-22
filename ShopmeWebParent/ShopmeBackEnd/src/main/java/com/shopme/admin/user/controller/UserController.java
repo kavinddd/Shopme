@@ -1,9 +1,10 @@
 package com.shopme.admin.user.controller;
 
 import com.shopme.admin.FileUploadUtil;
-import com.shopme.admin.export.UserCsvExporter;
-import com.shopme.admin.export.UserExcelExporter;
-import com.shopme.admin.export.UserPdfExporter;
+import com.shopme.admin.export.Exporter;
+import com.shopme.admin.export.UserCsvExporterStrategy;
+import com.shopme.admin.export.UserExcelExporterStrategy;
+import com.shopme.admin.export.UserPdfExporterStrategy;
 import com.shopme.admin.user.UserNotFoundException;
 import com.shopme.admin.user.UserService;
 import com.shopme.admin.user.UserServiceImpl;
@@ -43,14 +44,8 @@ public class UserController {
     public String listByPage(@PathVariable("pageNum") int pageNum, Model model,
                              @RequestParam("sortField") String sortField, @RequestParam("sortDir") String sortDir,
                              @RequestParam(name = "keyword", required = false) String keyword){
-        System.out.println("Sort field: " + sortField);
-        System.out.println("Sort order: " + sortDir);
+
         Page<User> page = service.listByPage(pageNum, sortField, sortDir, keyword);
-        if (model.containsAttribute("message")){
-            System.out.println("listByPage --> There is a message");
-        } else {
-            System.out.println("listByPage --> There is no message");
-        }
 
         List<User> users = page.getContent();
         model.addAttribute("users", users);
@@ -73,8 +68,6 @@ public class UserController {
         model.addAttribute("sortDir", sortDir);
         model.addAttribute("reversedSortDir", (sortDir.equals("asc")) ? "desc" : "asc");
         model.addAttribute("keyword", keyword);
-        System.out.println("Sort dir equals 'asc': " + sortDir.equals("asc"));
-        System.out.println("reversed sort order: " + ((sortDir.equals("asc")) ? "desc" : "asc"));
 
         return "users/users";
     }
@@ -92,12 +85,10 @@ public class UserController {
     @PostMapping("/users/save")
     public String saveUser(User user, RedirectAttributes redirectAttributes,
                            @RequestParam("image")MultipartFile multipartFile,
-                           Model model) throws IOException, UserNotFoundException {
+                           Model model) throws IOException  {
         boolean isImageUploaded = !multipartFile.isEmpty();
         boolean isUserHadPhoto = !(user.getPhotos().isEmpty());
 
-        System.out.println("Is image uploaded? : " + isImageUploaded);
-        System.out.println("Is user had photo? : " + isUserHadPhoto);
         // if image is uploaded, we update the new file
         if (isImageUploaded) {
             user.setPhotos(multipartFile.getOriginalFilename());
@@ -121,9 +112,7 @@ public class UserController {
 
         redirectAttributes.addFlashAttribute("message", "The user has been saved successfully.");
 
-        String keyword = savedUser.getId() + " " + savedUser.getFirstName() + " " + savedUser.getLastName();
         String firstPartOfTheEmail = savedUser.getEmail().split("@")[0];
-//        return "redirect:/users";
         return "redirect:/users/page/1?sortField=id&sortDir=asc&keyword=" + firstPartOfTheEmail;
     }
 
@@ -163,25 +152,20 @@ public class UserController {
         return "redirect:/users";
     }
 
-    @GetMapping("/users/export/csv")
-    public void exportToCSV(HttpServletResponse response) throws IOException {
+    @GetMapping("/users/export/{exportType}")
+    public void export(HttpServletResponse response,
+                       @PathVariable(name="exportType") String exportType) throws IOException {
         List<User> allUsers = service.listAll();
-        UserCsvExporter exporter = new UserCsvExporter();
-        exporter.export(allUsers, response);
-    }
+        Exporter<User> userExporter =
+                switch (exportType) {
+            case "pdf" -> new Exporter<>(new UserPdfExporterStrategy());
+            case "csv" -> new Exporter<>(new UserCsvExporterStrategy());
+            case "excel" -> new Exporter<>(new UserExcelExporterStrategy());
+            default -> null;
+        };
 
-    @GetMapping("/users/export/excel")
-    public void exportToExcel(HttpServletResponse response) throws IOException {
-        List<User> allUsers = service.listAll();
-        UserExcelExporter exporter = new UserExcelExporter();
-        exporter.export(allUsers, response);
-    }
+        if (userExporter != null) userExporter.export(allUsers, response);
 
-    @GetMapping("/users/export/pdf")
-    public void exportToPDF(HttpServletResponse response) throws IOException {
-        List<User> allUsers = service.listAll();
-        UserPdfExporter exporter = new UserPdfExporter();
-        exporter.export(allUsers, response);
     }
 
 }

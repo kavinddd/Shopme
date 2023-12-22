@@ -1,19 +1,22 @@
 package com.shopme.admin.category;
 
 import com.shopme.common.entity.Category;
-import org.assertj.core.util.Streams;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.parameters.P;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 public class CategoryServiceImpl implements CategoryService {
 
-    private CategoryRepository categoryRepo;
+    private final CategoryRepository categoryRepo;
+    public static final int CATEGORY_PER_PAGE = 2;
 
     @Autowired
     public CategoryServiceImpl(CategoryRepository categoryRepo) {
@@ -27,23 +30,41 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public Category save(Category category) {
-        Category savedCategory = categoryRepo.save(category);
-        return savedCategory;
+        return categoryRepo.save(category);
+    }
+
+    @Override
+    public boolean isUnique(String name, String alias, Integer id) {
+        boolean isNameUnique = isNameUnique(name, id );
+        boolean isAliasUnique = isAliasUnique(alias, id);
+        return isAliasUnique && isNameUnique;
     }
 
     @Override
     public boolean isNameUnique(String name, Integer id) {
-        Category category = categoryRepo.findCategoryByName(name);
-        if (category == null) return true;
-        if (category.getId() == id) return true;
+        Optional<Category> category = categoryRepo.findCategoryByName(name);
+        if (category.isEmpty()) {
+            return true;
+        }
+        if (category.get().getId() == id) {
+            return true;
+        }
         return false;
     }
     @Override
     public boolean isAliasUnique(String alias, Integer id) {
-        Category category = categoryRepo.findCategoryByAlias(alias);
-        if (category == null) return true;
-        if (category.getId() == id) return true;
+        Optional<Category> category = categoryRepo.findCategoryByAlias(alias);
+
+        if (category.isEmpty()) {
+            return true;
+        }
+
+        if (category.get().getId() == id) {
+            return true;
+        }
+
         return false;
+
     }
 
     @Override
@@ -54,16 +75,16 @@ public class CategoryServiceImpl implements CategoryService {
         if (theCategoryOptional.isEmpty()) {
             throw new CategoryNotFoundException("Category %d is not found".formatted(id));
         }
-
-        Category theCategory = theCategoryOptional.get();
-
-        Set<Category> children = theCategory.getChildren();
-
-        if (children.size() != 0) {
-            for (Category child : theCategory.getChildren()) {
-                child.setParent(null);
-            }
-        }
+//
+//        Category theCategory = theCategoryOptional.get();
+//
+//        Set<Category> children = theCategory.getChildren();
+//
+//        if (!children.isEmpty()) {
+//            for (Category child : theCategory.getChildren()) {
+//                child.setParent(null);
+//            }
+//        }
 
         categoryRepo.deleteById(id);
     }
@@ -79,57 +100,88 @@ public class CategoryServiceImpl implements CategoryService {
         return theCategoryOptional.get();
     }
 
+    @Override
+    @Transactional
+    public void updateCategoryStatusById(Integer id, boolean status) throws CategoryNotFoundException {
+        Optional<Category> theCategory = categoryRepo.findById(id);
+        if (theCategory.isEmpty()) throw new CategoryNotFoundException("Category with ID %d was not found".formatted(id));
+
+        categoryRepo.updateEnabled(id, status);
+    }
 
     @Override
     public Map<Integer, String> countAllHierarchyLevel() {
-        List<Category> categories = categoryRepo.findAll();
+        List<Category> categories = listAllWithHierarchicalName();
 
-        // Used to store Category.id() : hierarchyLevel
-        // LinkedHashMap to keep order of insertion
-        Map<Integer, String> categoryIdWithHierarchyLevel = new LinkedHashMap<>();
+        // {1: Computer, 2: --Laptop}
+        Map<Integer, String> categoryIdAndHierarchyName = categories.stream()
+                .collect(
+                        Collectors.toMap(
+                                Category::getId,
+                                Category::getName,
+                                (a, b) -> b,
+                                LinkedHashMap::new
+                        ));
 
-        int hierarchyLevel; // higher the level, more parent it has
-
-        // loop all category
-        for (Category category: categories) {
-            // skip non-root category
-            if (categoryIdWithHierarchyLevel.containsKey(category.getId())) {
-                continue;
-            }
-            // since they are root, so hierarchy level starts at 0
-            hierarchyLevel = 0;
-            countAndStoreHierarchyLevel(hierarchyLevel, category, categoryIdWithHierarchyLevel);
-        }
-        System.out.println(categoryIdWithHierarchyLevel);
-
-        return categoryIdWithHierarchyLevel;
+        System.out.println(categoryIdAndHierarchyName);
+        return categoryIdAndHierarchyName;
     }
 
-    private void countAndStoreHierarchyLevel(int level, Category category, Map<Integer, String> categoryIdWithHierarchyName) {
-        categoryIdWithHierarchyName.put(category.getId(), "--".repeat(level) + category.getName());
-        Set<Category> children = category.getChildren();
-        int tempLevel;
-
-        if (children.size() > 0) {
-            for (Category child: children) {
-                tempLevel = level+1; // children level
-                // do the same thing if there is a children
-                countAndStoreHierarchyLevel(tempLevel, child, categoryIdWithHierarchyName);
-            }
-        }
-    }
     @Override
-    public List<Category> listAllInHierachical() {
-        List<Category> categories = categoryRepo.findAll();
+    public List<Category> listAllWithHierarchicalName() {
+        CategoryPageInfo dummyCategoryPageInfo = new CategoryPageInfo();
+        List<Category> categories = listCategoriesByPage(dummyCategoryPageInfo, -1,"asc", null);
 
-        List<Category> rootCategories = categories.stream()
-                .filter(Category::isRoot)
-                .toList();
-
-        return topologicalSortCategory(rootCategories);
+        return categories;
     }
 
-    private List<Category> topologicalSortCategory(List<Category> rootCategories) {
+    @Override
+    public List<Category> listCategoriesByPage(CategoryPageInfo categoryPageInfo, int pageNum, String sortDir, String keyword) {
+
+        Sort sort = Sort.by("name");
+        sort = sortDir.equals("desc") ? sort.descending() : sort.ascending();
+
+        boolean isUsedInForm = pageNum < 0;
+
+        // doesn't require pagination
+        if (isUsedInForm) {
+            // this returns all root categories
+            List<Category> allRootCategories = categoryRepo.findRootCategories(sort);
+            // make it hierarchical
+            return topologicalSortCategory(allRootCategories, sortDir);
+        }
+
+
+        Pageable pageable = PageRequest.of(pageNum - 1, CATEGORY_PER_PAGE, sort);
+
+        Page<Category> pageCategories;
+
+        boolean isSearching = (keyword != null) && (!keyword.isEmpty());
+
+        if (isSearching) {
+            pageCategories = categoryRepo.search(keyword, pageable);
+        }
+        else {
+            pageCategories = categoryRepo.findRootCategories(pageable);
+        }
+
+        categoryPageInfo.setTotalPages(pageCategories.getTotalPages());
+        categoryPageInfo.setTotalElements(pageCategories.getTotalElements());
+
+        List<Category> rootCategories = pageCategories.getContent();
+
+        // if search, don't implement hierarchy form
+        if (isSearching) {
+            return rootCategories;
+        }
+
+        return topologicalSortCategory(rootCategories, sortDir);
+
+    }
+
+
+
+    private List<Category> topologicalSortCategory(List<Category> rootCategories, String sortDir) {
         Stack<Category> stack = new Stack<>();
         Stack<Category> resultStack = new Stack<>();
         List<Category> sortedCategories = new ArrayList<>();
@@ -138,7 +190,7 @@ public class CategoryServiceImpl implements CategoryService {
 
             stack.push(rootCategory);
             // hierarchy level starts at 1 since root is already in the stack
-            Stack<Category> reversedStack = DFS(stack, resultStack, 1);
+            Stack<Category> reversedStack = traverseThroughAllChildren(stack, resultStack, 1, sortDir);
 
             // pop all the result stack to get a topological sort result
             while ( !reversedStack.isEmpty() ) {
@@ -149,17 +201,22 @@ public class CategoryServiceImpl implements CategoryService {
         return sortedCategories;
     }
 
-    private Stack<Category> DFS(Stack<Category> tempStack, Stack<Category> resultStack, Integer hierarchyLevel) {
+    private Stack<Category> traverseThroughAllChildren(Stack<Category> tempStack, Stack<Category> resultStack, Integer hierarchyLevel,
+                                                       String sortDir) {
 
         Category currentCategory = tempStack.peek();
-        Set<Category> childrenCategories = currentCategory.getChildren();
 
-        for (Category childCategory : childrenCategories) {
+        Set<Category> childrenCategoriesSet = currentCategory.getChildren();
+
+        // need to sort with name, otherwise result is inconsistent
+        List<Category> soretdCategoryList = sortCategory(childrenCategoriesSet, sortDir);
+
+        for (Category childCategory : soretdCategoryList) {
             String hierarchyName = "--".repeat(hierarchyLevel) + childCategory.getName();
             childCategory.setName(hierarchyName);
             tempStack.push(childCategory);
             // recursion
-            DFS(tempStack, resultStack, hierarchyLevel + 1);
+            traverseThroughAllChildren(tempStack, resultStack, hierarchyLevel + 1, sortDir);
         }
 
         // base case = no more children to iterate
@@ -168,6 +225,24 @@ public class CategoryServiceImpl implements CategoryService {
 
         // need to pop again to properly sort
         return resultStack;
+
+    }
+
+    private List<Category> sortCategory(Set<Category> categories, String sortDir) {
+        Comparator<Category> categoryComparator = new Comparator<Category>() {
+            @Override
+            public int compare(Category o1, Category o2) {
+                return o1.getName().compareTo(o2.getName());
+            }
+        };
+
+        if (sortDir.equals("desc")) categoryComparator.reversed();
+
+        List<Category> sortedCategories = new ArrayList<>(categories);
+
+        sortedCategories.sort(categoryComparator);
+
+        return sortedCategories;
 
     }
 

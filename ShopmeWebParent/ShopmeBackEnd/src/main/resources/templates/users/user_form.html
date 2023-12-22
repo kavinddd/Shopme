@@ -79,25 +79,8 @@
             </div>
         </div>
     </form>
+    <div th:replace="~{modal_fragments::modal}"></div>
 
-    <div class="modal fade text-center" id="modalDialog">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title" id="modalTitle">Warning</h4>
-                    <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
-                </div>
-
-                <div class="modal-body">
-                    <span id="modalBody"></span>
-                </div>
-
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <div class="text-center">
         <p>Shopme Control Panel - Copyright &copy; Shopme </p>
@@ -119,12 +102,12 @@
                 return form.submit();
             }
             if (response == "Duplicated") {
-                showModalDialog("Warning", userEmail + " has been used");
+                showModalWarning(userEmail + " has been used");
             } else {
-                showModalDialog("Error", "There was an unknown error from server");
+                showModalError("There was an unknown error from server");
             }
         }).fail(function() {
-            showModalDialog("Error", "Could not connect to the server");
+            showModalError("Could not connect to the server");
         });
         return false;
     }
