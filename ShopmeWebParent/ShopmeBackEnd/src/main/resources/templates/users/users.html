@@ -102,10 +102,8 @@
                         <div th:replace="~{fragments::entityStatus(${user.enabled}, 'User', 'users/' + ${user.id})}"></div>
                     </td>
                     <td>
-                        <a th:href="@{'/users/edit/' + ${user.id} }" class="fa-regular fa-pen-to-square fa-2xl icon-green" title="Edit this user"></a>
-                        &nbsp;
-                        <a th:href="@{'/users/delete/'+ ${user.id} }" class="fa-solid fa-trash fa-2xl icon-dark link-delete" title="Delete this user"
-                            th:userId="${user.id}"></a>
+                        <div th:replace="~{fragments::edit('User', '/users/edit/', ${user.id} )}"></div>
+                        <div th:replace="~{fragments::delete('User', '/users/delete/', ${user.id}, true )}"></div>
                     </td>
                 </tr>
 

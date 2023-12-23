@@ -28,7 +28,7 @@
            th:href="@{'/' + ${entityURL} + '/enabled/true'}" title="'Enable this ' + ${entityName}"></a>
     </div>
 
-    <div th:fragment="edit(entityName, entityId, editURL)" th:remove="tag">
+    <div th:fragment="edit(entityName, editURL, entityId)" th:remove="tag">
         <a th:href="@{ ${editURL}  + ${entityId} }"
            class="fa-regular fa-pen-to-square fa-2xl icon-green"
            title="Edit this ${entityName}"></a>
