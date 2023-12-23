@@ -22,3 +22,9 @@ The website is a MVC Server-side rendering ecommerce website allowing user to in
   - Elastic IP for static IP
   - RDS for MySQL Database
 
+# TODOLIST
+- Brand / Product CRUD feature
+- Client Registration
+- Client Authentication
+- Shopping Cart
+- Check out
