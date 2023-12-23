@@ -8,7 +8,7 @@ import org.apache.poi.xssf.usermodel.*;
 import java.io.IOException;
 import java.util.List;
 
-public class UserExcelExporter extends AbstractExporter {
+public class UserExcelExporterStrategy extends AbstractExporterStrategy<User> {
 
     private XSSFWorkbook workbook;
     private XSSFSheet sheet;
@@ -17,7 +17,7 @@ public class UserExcelExporter extends AbstractExporter {
 
     private static int dataLength = HEADER.length;
 
-    public UserExcelExporter() {
+    public UserExcelExporterStrategy() {
         workbook = new XSSFWorkbook();
     }
 
@@ -26,7 +26,7 @@ public class UserExcelExporter extends AbstractExporter {
     }
 
     public void export(List<User> users, HttpServletResponse response) throws IOException {
-        super.setResponseHeader(response, "application/octet-stream", ".xlsx");
+        super.setResponseHeader(response, "application/octet-stream", ".xlsx", "users");
         createSheet();
         writeDataInSheet(sheet, users);
         autosizeColumns();

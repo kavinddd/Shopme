@@ -38,7 +38,7 @@ public class Category {
     }
 
     public Category(String name, Category parent, String alias) {
-        this.id = id;
+        this.parent = parent;
         this.name = name;
         this.alias = alias;
     }
@@ -123,5 +123,15 @@ public class Category {
     @Transient
     public boolean isChildren() {
         return this.getParent() != null;
+    }
+
+    @Transient
+    public boolean hasChildren() {
+        return !this.getChildren().isEmpty();
+    }
+
+    @Transient
+    public boolean isDeletable() {
+        return !hasChildren();
     }
 }

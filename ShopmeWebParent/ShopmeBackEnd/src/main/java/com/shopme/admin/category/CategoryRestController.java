@@ -1,12 +1,8 @@
 package com.shopme.admin.category;
 
-import com.shopme.common.entity.Category;
-import com.shopme.common.entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -21,11 +17,11 @@ public class CategoryRestController {
 
     @PostMapping("/categories/new/checkUnique")
     public String checkUnique(@RequestParam Map<String, String> payload) {
-        System.out.println("checkUnique is being called" );
+
         String name = payload.get("name");
         String alias = payload.get("alias");
         Integer id = Integer.valueOf(payload.get("categoryId"));
-        System.out.println(name + " " + alias);
+
         if (!categoryService.isNameUnique(name, id)) return "Name Duplicated";
         if (!categoryService.isAliasUnique(alias, id)) return "Alias Duplicated";
         return "OK";

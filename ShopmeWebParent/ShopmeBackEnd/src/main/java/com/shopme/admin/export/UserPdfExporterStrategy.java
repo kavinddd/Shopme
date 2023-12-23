@@ -13,11 +13,11 @@ import java.io.IOException;
 import java.util.List;
 
 
-public class UserPdfExporter extends AbstractExporter {
+public class UserPdfExporterStrategy extends AbstractExporterStrategy<User> {
 
     @Override
     public void export(List<User> users, HttpServletResponse response) throws IOException {
-        super.setResponseHeader(response, "application/pdf", ".pdf");
+        super.setResponseHeader(response, "application/pdf", ".pdf", "users");
         Document document = new Document(PageSize.A4);
         PdfWriter.getInstance(document, response.getOutputStream());
         document.open();

@@ -37,3 +37,11 @@
         $("#modalDialog").modal("show");
     }
 
+    function showModalError(message) {
+       showModalDialog("Error", message);
+    }
+
+    function showModalWarning(message) {
+       showModalDialog("Warning", message);
+    }
+
