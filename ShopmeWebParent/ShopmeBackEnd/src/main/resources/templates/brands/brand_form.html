@@ -6,9 +6,9 @@
 <div class="container-fluid">
   <div th:replace="~{navigator::menu}"/>
   <div>
-    <h2> Manage Categories | [[${pageTitle}]]  </h2>
+    <h2> Manage Brands | [[${pageTitle}]]  </h2>
   </div>
-<form th:action="@{/categories/save}" method="post" th:object="${category}" style="max-width: 700px; margin: 0 auto"
+<form th:action="@{/brands/save}" method="post" th:object="${brand}" style="max-width: 700px; margin: 0 auto"
       enctype="multipart/form-data" onsubmit="return checkUniqueness(this)">
   <input type="hidden" th:field="*{id}" />
 
@@ -20,37 +20,31 @@
       </div>
     </div>
     <div class="row m-3">
-      <label class="col-sm-4">Alias</label>
+      <label class="col-sm-4">Select one or more categories</label>
       <div class="col-sm-8">
-        <input type="text" class="form-control" id="alias" th:field="*{alias}" required/>
-      </div>
-    </div>
-    <div class="row m-3">
-      <label class="col-sm-4">Parent Category</label>
-      <div class="col-sm-8">
-      <select class="form-select form-control" th:field="*{parent}">
-        <option selected value="">No Parent</option>
-        <option th:each="cat : ${categoriesWithHierarchyLevel.entrySet()}" th:value="${cat.getKey()}">[[${cat.getValue()}]]</option>
-      </select>
+        <select class="form-select form-control" multiple required th:field="*{categories}"
+                style="resize: vertical; height: 200px">
+            <option th:each="cat : ${categoriesWithHierarchyLevel.entrySet()}" th:value="${cat.getKey()}">[[${cat.getValue()}]]</option>
+        </select>
       </div>
     </div>
 
     <div class="row m-3">
-      <label class="col-sm-4">Image</label>
+      <label class="col-sm-4">Chosen categories</label>
+      <div class="col-sm-8" id="chosenCategories">
+      </div>
+
+    </div>
+
+    <div class="row m-3">
+      <label class="col-sm-4">Logo</label>
       <div class="col-sm-8">
-        <input type="hidden" th:field="*{image}">
+        <input type="hidden" th:field="*{logo}">
         <input type="file" id="fileImage" name="fileImage" accept="image/png image/jpg"/>
-        <img class="mt-2 img-fluid" id="thumbnail" alt="photo-preview" th:src="@{${category.imagePath}}"/>
+        <img class="mt-2 img-fluid" id="thumbnail" alt="photo-preview" th:src="@{${brand.logoPath}}"/>
       </div>
 
 
-    </div>
-
-    <div class="row m-3">
-      <label class="col-sm-4"> Enabled</label>
-      <div class="col-sm-8">
-        <input type="checkbox" class="form=control" th:field="*{enabled}" size="10px"/>
-      </div>
     </div>
 
     <div class="text-center">
@@ -62,21 +56,44 @@
 
   <div th:replace="~{modal_fragments::modal}"></div>
 
+
+
+
 </form>
 </div>
 
 <div th:replace="~{fragments::footer}"></div>
 <script type="text/javascript">
-  const moduleURL = "[[@{/categories}]]";
+  const moduleURL = "[[@{/brands}]]";
+
+  $(document).ready(function() {
+    dropdownCategories = $("#categories");
+    divChosenCategories = $("#chosenCategories");
+    showChosenCategories();
+    dropdownCategories.change(function() {
+        divChosenCategories.empty();
+        showChosenCategories();
+    });
+  });
+
+  function showChosenCategories() {
+      dropdownCategories.children("option:selected").each(function() {
+         selectedCategory = $(this);
+         catId = selectedCategory.val();
+         catName = selectedCategory.text().replace(/-/g, "");
+         divChosenCategories.append("<span class='badge bg-secondary m-1'>" + catName +"</span>");
+      });
+  }
+
+
 
   function checkUniqueness(form) {
       console.log("checkUniqueness is being called");
-      url = "[[@{/categories/new/checkUnique}]]"
+      url = "[[@{/brands/new/checkUnique}]]"
       params = {
               "_csrf" : $("input[name='_csrf']").val(),
               "name" : $("#name").val(),
-              "alias" : $("#alias").val(),
-              "categoryId" : $("#id").val()
+              "brandId" : $("#id").val()
               };
 
       $.post(url, params,
@@ -84,7 +101,7 @@
           if (response == "OK") {
             return form.submit();
           }
-          else if (response == "Name Duplicated" || response == "Alias Duplicated") {
+          else if (response == "Name Duplicated" ) {
             showModalWarning(response);
           }
           else {

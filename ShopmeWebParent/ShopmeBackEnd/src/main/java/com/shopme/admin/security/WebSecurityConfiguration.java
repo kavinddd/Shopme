@@ -55,7 +55,7 @@ public class WebSecurityConfiguration {
                 .formLogin(formLogin ->
                         formLogin
                                 .loginPage("/login")
-                                .defaultSuccessUrl("/users")
+                                .defaultSuccessUrl("/", true)
                                 .usernameParameter("email")
                                 .permitAll())
                 .logout(logout -> logout.permitAll())
@@ -68,7 +68,9 @@ public class WebSecurityConfiguration {
 
     @Bean
     public WebSecurityCustomizer configure() throws Exception {
-        return  (web) -> web.ignoring().requestMatchers("/images/**", "/js/**", "/webjars/**");
+        return  (web) -> web.ignoring()
+                .requestMatchers("/images/**", "/js/**", "/webjars/**")
+                .requestMatchers("/h2-console/**");
     }
 
 }

@@ -182,11 +182,17 @@ public class CategoryServiceImpl implements CategoryService {
 
 
     private List<Category> topologicalSortCategory(List<Category> rootCategories, String sortDir) {
+        List<Category> rootCategoriesCopy  = new ArrayList<>(rootCategories.size());
+
+        rootCategories.forEach(
+                cat -> rootCategoriesCopy.add(cat.copy())
+        );
+
         Stack<Category> stack = new Stack<>();
         Stack<Category> resultStack = new Stack<>();
         List<Category> sortedCategories = new ArrayList<>();
 
-        for (Category rootCategory: rootCategories) {
+        for (Category rootCategory: rootCategoriesCopy) {
 
             stack.push(rootCategory);
             // hierarchy level starts at 1 since root is already in the stack
@@ -209,7 +215,15 @@ public class CategoryServiceImpl implements CategoryService {
         Set<Category> childrenCategoriesSet = currentCategory.getChildren();
 
         // need to sort with name, otherwise result is inconsistent
-        List<Category> soretdCategoryList = sortCategory(childrenCategoriesSet, sortDir);
+
+        // copy for immutable
+        List<Category> soretdCategoryList =  new ArrayList<>(childrenCategoriesSet.size());
+
+        childrenCategoriesSet.forEach(
+                child -> soretdCategoryList.add(child.copy())
+        );
+        // mutable sort
+        sortCategory(soretdCategoryList, sortDir);
 
         for (Category childCategory : soretdCategoryList) {
             String hierarchyName = "--".repeat(hierarchyLevel) + childCategory.getName();
@@ -228,7 +242,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     }
 
-    private List<Category> sortCategory(Set<Category> categories, String sortDir) {
+    private List<Category> sortCategory(List<Category> categories, String sortDir) {
         Comparator<Category> categoryComparator = new Comparator<Category>() {
             @Override
             public int compare(Category o1, Category o2) {

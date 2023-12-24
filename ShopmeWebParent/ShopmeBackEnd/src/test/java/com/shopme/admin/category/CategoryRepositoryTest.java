@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.util.Optional;
 
 @DataJpaTest(showSql = false)
-@AutoConfigureTestDatabase()
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 public class CategoryRepositoryTest {
     private CategoryRepository repo;
 

@@ -38,9 +38,15 @@ public class Category {
     }
 
     public Category(String name, Category parent, String alias) {
-        this.parent = parent;
+        this(0, name ,alias, parent, null);
+    }
+
+    public Category(int id, String name, String alias, Category parent, String image) {
+        this.id = id;
         this.name = name;
         this.alias = alias;
+        this.image = image;
+        this.parent = parent;
     }
 
     public int getId() {
@@ -133,5 +139,12 @@ public class Category {
     @Transient
     public boolean isDeletable() {
         return !hasChildren();
+    }
+
+    @Transient
+    public Category copy() {
+        Category copiedCategory = new Category(id,name, alias, parent, image);
+        copiedCategory.setChildren(children);
+        return copiedCategory;
     }
 }

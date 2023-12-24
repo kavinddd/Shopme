@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" >
+<head th:replace="~{fragments::page_head('Brands - Shopme Admin')}"></head>
+
+<body>
+
+<div class="modal fade text-center" id="confirmModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Delete Confirmation</h4>
+                <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <span id="confirmText"></span>
+            </div>
+
+            <div class="modal-footer">
+                <a class="btn btn-success" href="" id="yesButton">Yes</a>
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div th:replace="~{navigator::menu}"></div>
+    <div>
+        <h2 class="text-center m-5">Manage Brands</h2>
+        <a th:href="@{/brands/new}" class="fa-solid fa-user-plus fa-2x icon-dark mr-2"></a>
+        &nbsp;&nbsp;
+        <a th:href="@{/brands/export/csv}" class="fa-solid fa-file-csv fa-2x icon-dark mr-2"></a>
+        &nbsp;&nbsp;
+    </div>
+
+
+    <div th:replace="~{fragments::searchFormWithMessage('/brands/page/1')}"></div>
+
+    <div class="less-details">
+
+        <div th:each="brand:${brands}" class="row m-1">
+            <div class="col-4">
+                <i th:if="${brand.logo == null}" class="fa-solid fa-image-portrait fa-3x icon-dark"></i>
+                <img th:if="${brand.logo != null}" th:src="@{${brand.logoPath}}" style="width: 100px"/>
+            </div>
+            <div class="col-8">
+                <div> [[${brand.name}]]</div>
+                <div class="mt-2">
+                    &nbsp;
+                    <div th:replace="~{fragments::edit('Brand', '/brands/edit/' , ${brand.id} )}"></div>
+                    &nbsp;
+                    <div th:replace="~{fragments::delete('Brand', '/brands/delete/' , ${brand.id}, true )}"></div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="full-details">
+        <table class="table table-bordered table-striped table-hover table-responsive-xl">
+            <thead class="table-dark">
+            <tr>
+                <th class="hideable-column"> ID </th>
+                <th> Brand Logo </th>
+                <th th:replace="~{fragments::column_link('brands', 'name', 'Brand Name', 'none' )}"> </th>
+                <th> Categories </th>
+                <th> Actions </th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="brand: ${brands}">
+                <td class="hideable-column" th:text="${brand.id}"></td>
+                <td>
+                    <i th:if="${brand.logo == null}" class="fa-solid fa-image-portrait fa-3x icon-dark"></i>
+                    <img th:if="${brand.logo != null}" th:src="@{${brand.logoPath}}" style="width: 100px"/>
+                </td>
+                <td th:text="${brand.name}"></td>
+                <td>
+                    <th:block th:each="cat: ${brand.categories}">
+                        <span class="badge bg-secondary" th:text="${cat.name}"></span>
+                    </th:block>
+                </td>
+                <td>
+                    <div th:replace="~{fragments::edit('Brand', '/brands/edit/' , ${brand.id} )}"></div>
+                    <div th:replace="~{fragments::delete('Brand', '/brands/delete/' , ${brand.id}, true)}"></div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div th:if="${keyword == null}">
+        <div th:replace="~{fragments::pagination('/brands/page/', 'brands')}"></div>
+    </div>
+    <div th:replace="~{fragments::footer}"></div>
+</div>
+
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        $(".link-delete").on("click", function(e) {
+            e.preventDefault();
+            link = $(this);
+            brandId = link.attr("entityId");
+            $("#yesButton").attr("href", link.attr("href"));
+            $("#confirmText").text("Are you sure you want to delete this brand ID: " + brandId + "?");
+            $("#confirmModal").modal("show");
+        });
+    });
+
+    function clearFilter() {
+        window.location= "[[@{/brands}]]"
+    }
+
+</script>
+
+</body>
+</html>>
